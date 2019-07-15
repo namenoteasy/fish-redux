@@ -1,18 +1,20 @@
 import 'package:flutter/widgets.dart' hide Action;
 
 import '../redux/redux.dart';
-import '../redux_component/context.dart';
 import '../redux_component/redux_component.dart';
+
 import '../utils/utils.dart';
 
+/// usage
+/// class MyAdapter extends Adapter<T> with VisibleChangeMixin<T> {
+///   MyAdapter():super(
+///     ///
+///   );
+/// }
 mixin VisibleChangeMixin<T> on AbstractAdapter<T> {
   @override
-  ListAdapter buildAdapter(
-      T state, Dispatch dispatch, ViewService viewService) {
-    return _wrapVisibleChange<T>(
-      super.buildAdapter(state, dispatch, viewService),
-      viewService,
-    );
+  ListAdapter buildAdapter(ContextSys<T> ctx) {
+    return _wrapVisibleChange<T>(super.buildAdapter(ctx), ctx);
   }
 }
 
@@ -52,7 +54,7 @@ class _VisibleChangeWidget extends StatefulWidget {
 
 ListAdapter _wrapVisibleChange<T>(
   ListAdapter listAdapter,
-  DefaultContext<T> ctx,
+  LogicContext<T> ctx,
 ) {
   final _VisibleChangeDispatch onChange =
       (ctx.extra['\$visible'] ??= _VisibleChangeDispatch(ctx.dispatch));
@@ -61,12 +63,11 @@ ListAdapter _wrapVisibleChange<T>(
       ? null
       : ListAdapter(
           (BuildContext buildContext, int index) => _VisibleChangeWidget(
-                itemBuilder: listAdapter.itemBuilder,
-                index: index,
-                dispatch: onChange.onAction,
-                key: ValueKey<Tuple2<Object, int>>(
-                    Tuple2<Object, int>(ctx, index)),
-              ),
+            itemBuilder: listAdapter.itemBuilder,
+            index: index,
+            dispatch: onChange.onAction,
+            key: ValueKey<Tuple2<Object, int>>(Tuple2<Object, int>(ctx, index)),
+          ),
           listAdapter.itemCount,
         );
 }
